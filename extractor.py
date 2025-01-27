@@ -69,15 +69,20 @@ def extract_workout_logs(exercise_id, exercise_dict, logs):
 
 def extract_bodyweight_logs(bodyweight):
     print("Extracting bodyweight logs...")
+    bodyweight_data = []
     for weight in bodyweight:
         if weight['measurementTypeValue'] == "WEIGHT":
             timestamp = weight['startDate']
             value = weight['value']
             # convert weight to Lbs
             value *= 2.20462
-            with open("data/Bodyweight.csv", "a", newline="") as file:
-                writer = csv.writer(file)
-                writer.writerow([timestamp, value])
+            bodyweight_data.append([timestamp, value])
+
+    with open("data/Bodyweight.csv", "w", newline="") as file:
+        writer = csv.writer(file)
+        writer.writerow(["timestamp", "weight"])  # CSV Headers
+        writer.writerows(bodyweight_data)
+        
     
 
 def main():

@@ -1,0 +1,21 @@
+# Ignore Python virtual environments
+venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Ignore Pipenv cache and lock files
+Pipfile.lock
+
+# Ignore environment variables and credentials
+.env
+*.env
+
+# Ignore Docker-related files
+Dockerfile
+.dockerignore
+
+# Ignore IDE and editor settings
+.vscode/
+.idea/
+*.swp

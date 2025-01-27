@@ -15,6 +15,7 @@ def fetch_data():
         "bench_press": read_csv("data/Bench Press (Barbell).csv") or [],
         "deadlift": read_csv("data/Deadlift (Barbell).csv") or [],
         "squat": read_csv("data/Squat (Barbell).csv") or [],
+        "bodyweight": read_csv("data/Bodyweight.csv") or [],
     }
 
     return jsonify(data)
