@@ -92,4 +92,5 @@ def main():
     extract_workout_logs('ca9ee259-a69f-4839-bbf9-46ba8cf0d7d6', exercise_dict, workout_logs)
     extract_workout_logs('b748103d-3014-4cae-a349-cec433528c3a', exercise_dict, workout_logs)
     extract_workout_logs('b2f5a2de-c684-4e94-a6e5-581e0695fcac', exercise_dict, workout_logs)
+    extract_workout_logs('5974b925-ff0f-40de-9385-e6ccac763ddd', exercise_dict, workout_logs)
     extract_bodyweight_logs(bodyweight)

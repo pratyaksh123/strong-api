@@ -5,21 +5,6 @@ from extractor import main
 from api import get_data
 
 app = Flask(__name__)
-# class Config:
-#     SCHEDULER_API_ENABLED = True
-    
-# app.config.from_object(Config())
-# scheduler = APScheduler()
-# scheduler.init_app(app)
-
-# # ✅ Only start APScheduler if running in the main Gunicorn worker
-# if os.environ.get("WERKZEUG_RUN_MAIN") == "true" or "gunicorn" not in os.environ.get("SERVER_SOFTWARE", ""):
-#     scheduler.start()
-
-# # Job to fetch data every 24 hours
-# @scheduler.task('cron', id='fetch_data', hour='0')
-# def fetch_data():
-#     get_data()
 
 @app.route("/fetch_data", methods=["GET"])
 def fetch_data():
@@ -29,6 +14,7 @@ def fetch_data():
         "bench_press": read_csv("data/Bench Press (Barbell).csv") or [],
         "deadlift": read_csv("data/Deadlift (Barbell).csv") or [],
         "squat": read_csv("data/Squat (Barbell).csv") or [],
+        "overhead_press": read_csv("data/Strict Military Press (Barbell).csv") or [],
         "bodyweight": read_csv("data/Bodyweight.csv") or [],
     }
 
