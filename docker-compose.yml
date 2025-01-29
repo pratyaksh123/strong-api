@@ -1,0 +1,37 @@
+version: "3.8"
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: gym_api_backend
+    restart: always
+    env_file:
+      - backend/.env
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./backend/app/data:/app/app/data  # Persist extracted workout data
+    networks:
+      - gym_network
+
+  frontend:
+    mem_limit: 2g
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: gym_pr_frontend
+    restart: always
+    ports:
+      - "8501:8501"
+    depends_on:
+      - backend
+    environment:
+      - API_BASE_URL=http://backend:5000  # Allows frontend to talk to backend inside the network
+    networks:
+      - gym_network
+
+networks:
+  gym_network:
+    driver: bridge

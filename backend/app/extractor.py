@@ -1,8 +1,12 @@
+from app.constants import JSON_FILE_PATH, DATA_DIR
+
 import json
 import csv
+import os
 
 def load_json_data_local():
-    with open("data/data.json", "r") as file:
+    print("path", JSON_FILE_PATH)
+    with open(JSON_FILE_PATH, "r") as file:
         data = json.load(file)
     return data    
 
@@ -59,7 +63,7 @@ def extract_workout_logs(exercise_id, exercise_dict, logs):
     exercise_data.sort(key=lambda x: x[0])
     
     # Save to CSV file
-    file_name = f"data/{(exercise_dict[exercise_id]['name']).strip()}.csv"
+    file_name = os.path.join(DATA_DIR, f"{(exercise_dict[exercise_id]['name']).strip()}.csv")
     with open(file_name, "w", newline="") as file:
         writer = csv.writer(file)
         writer.writerow(["timestamp", "weight", "reps"])  # CSV Headers
@@ -78,7 +82,8 @@ def extract_bodyweight_logs(bodyweight):
             value *= 2.20462
             bodyweight_data.append([timestamp, value])
 
-    with open("data/Bodyweight.csv", "w", newline="") as file:
+    file_path = os.path.join(DATA_DIR, "Bodyweight.csv")
+    with open(file_path, "w", newline="") as file:
         writer = csv.writer(file)
         writer.writerow(["timestamp", "weight"])  # CSV Headers
         writer.writerows(bodyweight_data)

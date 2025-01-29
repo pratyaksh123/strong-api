@@ -1,1 +1,0 @@
-STRONG_API_BASE_URL = "https://back.strong.app"

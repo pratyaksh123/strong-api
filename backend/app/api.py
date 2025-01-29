@@ -2,9 +2,9 @@ import os
 import requests
 from flask import Flask, jsonify
 from dotenv import load_dotenv
-from constants import STRONG_API_BASE_URL
-load_dotenv()
+from app.constants import STRONG_API_BASE_URL, JSON_FILE_PATH
 
+load_dotenv()
 import json
 
 def get_auth():
@@ -81,8 +81,9 @@ def get_data():
         if response.status_code == 200:
             print("✅ Data fetched successfully.")
             try:
-                with open("data/data.json", "w") as file:
+                with open(JSON_FILE_PATH, "w") as file:
                     json.dump(response.json(), file, indent=4)
+                print(f"✅ Data saved at {JSON_FILE_PATH}")
             except Exception as e:
                 print(f"❌ Failed to save data.json: {e}")
         else:

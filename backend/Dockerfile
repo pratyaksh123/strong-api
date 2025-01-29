@@ -40,4 +40,4 @@ RUN chmod 0644 /etc/cron.d/fetch_data && crontab /etc/cron.d/fetch_data
 ENTRYPOINT ["/usr/local/bin/custom_entrypoint.sh"]
 
 # Start cron service & Flask server
-CMD cron && pipenv run gunicorn -w 4 -b 0.0.0.0:5000 server:app
+CMD cron && pipenv run gunicorn -w 4 -b 0.0.0.0:5000 wsgi:app
