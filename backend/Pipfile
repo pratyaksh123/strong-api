@@ -9,6 +9,7 @@ requests = "*"
 gunicorn = "*"
 flask-apscheduler = "*"
 python-dotenv = "*"
+aiohttp = "*"
 
 [dev-packages]
 

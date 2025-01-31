@@ -11,6 +11,11 @@ from app.constants import (
 
 api = Blueprint("api", __name__)
 
+@api.route("/", methods=["GET"])
+def home():
+    """Root route that returns a greeting."""
+    return "Welcome to the Workout Data API!"
+
 @api.route("/fetch_data", methods=["GET"])
 def fetch_data():
     """Fetches workout data from extracted CSVs and returns JSON."""
