@@ -14,7 +14,8 @@ services:
     volumes:
       - ./backend/app/data:/app/app/data  # Persist extracted workout data
     networks:
-      - gym_network
+      gym_network:
+        ipv4_address: 172.30.0.2  # Static IP for backend
 
   frontend:
     mem_limit: 2g
@@ -30,8 +31,12 @@ services:
     environment:
       - API_BASE_URL=http://backend:5000  # Allows frontend to talk to backend inside the network
     networks:
-      - gym_network
+      gym_network:
+        ipv4_address: 172.30.0.3  # Static IP for frontend
 
 networks:
   gym_network:
     driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.0.0/16  # Fixed subnet for all containers
