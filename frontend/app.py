@@ -2,7 +2,12 @@ import streamlit as st
 import requests
 import pandas as pd
 import altair as alt
-from constants import API_BASE_URL
+from dotenv import load_dotenv
+
+import os
+
+load_dotenv()
+API_BASE_URL = os.getenv("API_BASE_URL", "192.168.0.214")
 
 # ✅ Clean Title with Less Space
 st.markdown("<h1 style='text-align: center;'>🏋️‍♂️ Gym PR Tracker</h1>", unsafe_allow_html=True)
@@ -57,7 +62,7 @@ if ms.themes["refreshed"] == False:
     ms.themes["refreshed"] = True
     st.rerun()
 
-@st.cache_data(ttl=600)  # Cache API response for 10 minutes
+# @st.cache_data(ttl=600)  # Cache API response for 10 minutes
 def fetch_data():
     """Fetches user workout data from Flask API."""
     response = requests.get(f"{API_BASE_URL}/fetch_data")

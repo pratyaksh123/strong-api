@@ -1,14 +1,34 @@
 from app.constants import JSON_FILE_PATH, DATA_DIR
+from app.api import get_data
 
 import json
 import csv
 import os
 
 def load_json_data_local():
-    print("path", JSON_FILE_PATH)
-    with open(JSON_FILE_PATH, "r") as file:
-        data = json.load(file)
-    return data    
+    # Check if the file exists
+    if not os.path.exists(JSON_FILE_PATH):
+        print("data.json does not exist. Fetching data...")
+        result = get_data()
+        if result.get("status") != "success":
+            raise Exception("Failed to fetch data. Cannot proceed.")
+    
+    # Check if the file is empty
+    if os.path.getsize(JSON_FILE_PATH) == 0:
+        print("data.json is empty. Fetching data...")
+        result = get_data()
+        if result.get("status") != "success":
+            raise Exception("Failed to fetch data. Cannot proceed.")
+
+    # Load JSON data
+    print("Loading data from:", JSON_FILE_PATH)
+    try:
+        with open(JSON_FILE_PATH, "r") as file:
+            data = json.load(file)
+    except json.JSONDecodeError:
+        raise Exception("Failed to parse data.json. The file might be corrupted.")
+
+    return data
 
 def extract_data(data):
     print("Extracting data...")
@@ -39,6 +59,8 @@ def extract_workout_logs(exercise_id, exercise_dict, logs):
     # Goal is to extract all data for a specific exercise into csv file
     for workout in logs:
         if workout['logType'] == "WORKOUT":
+            if "isHidden" in workout and workout["isHidden"]:
+                continue
             timestamp = workout['startDate']
             for sets in workout['_embedded']['cellSetGroup']:
                 if "measurement" not in sets['_links']:
@@ -75,6 +97,8 @@ def extract_bodyweight_logs(bodyweight):
     print("Extracting bodyweight logs...")
     bodyweight_data = []
     for weight in bodyweight:
+        if "isHidden" in weight and weight["isHidden"]:
+            continue
         if weight['measurementTypeValue'] == "WEIGHT":
             timestamp = weight['startDate']
             value = weight['value']
