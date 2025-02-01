@@ -172,5 +172,5 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
-*.csv
-data.json
+backend/app/data/*.csv
+backend/app/data/data.json
