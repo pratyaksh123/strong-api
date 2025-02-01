@@ -9,12 +9,20 @@ from app.constants import (
     BODYWEIGHT_PATH
 )
 
+from app.api import get_data
+
 api = Blueprint("api", __name__)
 
 @api.route("/", methods=["GET"])
 def home():
     """Root route that returns a greeting."""
     return "Welcome to the Workout Data API!"
+
+@api.route("/refresh_data", methods=["GET"])
+def refresh_data():
+    """Refreshes the data.json"""
+    result = get_data()
+    return jsonify(result)
 
 @api.route("/fetch_data", methods=["GET"])
 def fetch_data():

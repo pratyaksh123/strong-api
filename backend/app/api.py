@@ -84,13 +84,18 @@ def get_data():
                 with open(JSON_FILE_PATH, "w") as file:
                     json.dump(response.json(), file, indent=4)
                 print(f"✅ Data saved at {JSON_FILE_PATH}")
+                return {"status": "success", "message": "Data fetched and saved successfully."}
+                return                 
             except Exception as e:
                 print(f"❌ Failed to save data.json: {e}")
+                return {"status": "error", "message": f"Failed to save data: {e}"}
         else:
             print(f"❌ Failed to fetch data. Status: {response.status_code} - {response.text}")
+            return {"status": "error", "message": f"Failed to fetch data. Status: {response.status_code}"}
 
     except requests.RequestException as e:
         print(f"❌ Request failed: {e}")
+        return {"status": "error", "message": f"Request failed: {e}"}
 
 if __name__ == "__main__":
     get_data()
