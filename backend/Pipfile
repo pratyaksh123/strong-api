@@ -10,6 +10,7 @@ gunicorn = "*"
 flask-apscheduler = "*"
 python-dotenv = "*"
 aiohttp = "*"
+pandas = "*"
 
 [dev-packages]
 
