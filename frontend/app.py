@@ -15,7 +15,6 @@ st.set_page_config(page_title="Strong Dashboard", page_icon=":weight_lifter:", l
 st.markdown("<h1 style='text-align: center;'>🏋️‍♂️ Gym PR Tracker</h1>", unsafe_allow_html=True)
 st.markdown("<p style='text-align: center;'>Track your strength progress over time with clear visualizations!</p>", unsafe_allow_html=True)
 
-
 # ✅ Initialize Theme Settings
 ms = st.session_state
 if "themes" not in ms: 
@@ -53,6 +52,62 @@ def ChangeTheme():
 
     ms.themes["refreshed"] = False
     ms.themes["current_theme"] = "dark" if previous_theme == "light" else "light"
+
+def apply_custom_styles():
+    # Common styles for both themes
+    base_styles = """
+        <style>
+            .stMultiSelect > div > div > div {
+                border: 2px solid #5591f5;
+                border-radius: 10px;
+            }
+
+            .stMultiSelect div[data-baseweb="tag"] {
+                border-radius: 5px;
+            }
+
+            .stMultiSelect svg {
+                fill: #5591f5;
+            }
+        </style>
+    """
+
+    # Light theme specific styles
+    light_theme_styles = """
+        <style>
+            .stMultiSelect > div > div > div {
+                background-color: #f0f8ff;
+            }
+
+            .stMultiSelect div[data-baseweb="tag"] {
+                background-color: #5591f5 !important;
+                color: white !important;
+            }
+        </style>
+    """
+
+    # Dark theme specific styles
+    dark_theme_styles = """
+        <style>
+            .stMultiSelect > div > div > div {
+                background-color: #2c2c2c;
+            }
+
+            .stMultiSelect div[data-baseweb="tag"] {
+                background-color: #c98bdb !important;
+                color: black !important;
+            }
+        </style>
+    """
+
+    # Apply styles based on the current theme
+    if ms.themes["current_theme"] == "light":
+        st.markdown(base_styles + light_theme_styles, unsafe_allow_html=True)
+    else:
+        st.markdown(base_styles + dark_theme_styles, unsafe_allow_html=True)
+
+# Apply styles when the dashboard is rendered
+apply_custom_styles()
 
 # ✅ Add Dark Mode Toggle at the Top
 top_bar = st.columns([8, 1])

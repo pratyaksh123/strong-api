@@ -12,11 +12,11 @@ RUN apt-get update && apt-get install -y python3-pip python3-dev && \
 # Copy frontend files into the container
 COPY . .
 
-# Install Python dependencies from requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+# Install dependencies in a virtual environment
+RUN pipenv install --deploy --ignore-pipfile
 
-# Expose Heroku's default port
-EXPOSE $PORT
+# Expose Streamlit's default port
+EXPOSE 8501
 
 # Run Streamlit app
-CMD sh -c "streamlit run app.py --server.port=$PORT --server.address=0.0.0.0"
+CMD ["pipenv", "run", "streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]

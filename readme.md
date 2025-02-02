@@ -39,14 +39,15 @@ strong-api/
 
 1. **Install [Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli):**
    ```bash
-   brew tap heroku/brew && brew install heroku  # macOS
-   sudo snap install --classic heroku  # Linux
+    brew tap heroku/brew && brew install heroku  # macOS
+    sudo snap install --classic heroku  # Linux
    ```
 2. **Login to Heroku:**
    ```bash
-   heroku login
+    heroku login
    ```
 3. **Ensure Docker is Installed and Running.**
+Install Docker Desktop from [here](https://www.docker.com/products/docker-desktop).
 
 ---
 
@@ -56,12 +57,12 @@ strong-api/
 
 1. Navigate to the backend directory:
    ```bash
-   cd backend
+    cd backend
    ```
 
 2. Create your **Heroku App** for the backend:
    ```bash
-   heroku create <your-backend-app-name>
+    heroku create gym-api-backend
    ```
 
 3. Set up environment variables in `.env` ( rename `.env.example` to `.env`):
@@ -72,48 +73,58 @@ strong-api/
 
 4. Deploy to Heroku:
    ```bash
-   heroku stack:set container
-   git add .
-   git commit -m "Deploy backend API"
-   git push heroku main
+    heroku stack:set container
+    heroku container:push web --app gym-api-backend
+    heroku container:release web --app gym-api-backend
    ```
 
 5. Verify the deployment:
    ```bash
-   heroku open
+    heroku open --app gym-api-backend
    ```
+    or go to hero dashboard and open the app. 
 
+6. Monitor the logs for any errors.
+   ```bash
+    heroku logs --tail --app gym-api-backend
+   ```
 ---
 
 ### 2. **Frontend Dashboard Deployment**
 
 1. Navigate to the frontend directory:
    ```bash
-   cd ../frontend
+    cd ../frontend
    ```
 
 2. Create your **Heroku App** for the frontend:
    ```bash
-   heroku create <your-frontend-app-name>
+    heroku create gym-api-frontend
    ```
 
-3. Configure the API Base URL in `.env` (replace `<your-backend-app-name>`):
+3. Configure the API Base URL in `.env` , check the backend app url in heroku dashboard:
    ```env
-   API_BASE_URL=https://<your-backend-app-name>.herokuapp.com
+    API_BASE_URL=<> # Backend API URL
+
+    Example: API_BASE_URL=https://gym-api-backend-cd72bdw589b1.herokuapp.com/
    ```
 
 4. Deploy to Heroku:
    ```bash
-   heroku stack:set container
-   git add .
-   git commit -m "Deploy frontend dashboard"
-   git push heroku main
+    heroku stack:set container
+    heroku container:push web --app gym-api-frontend
+    heroku container:release web --app gym-api-frontend
+   ```
+Monitor the logs for any errors.
+   ```bash
+    heroku logs --tail --app gym-api-frontend
    ```
 
 5. Open the dashboard:
    ```bash
-   heroku open
+   heroku open --app gym-api-frontend
    ```
+    Or go to hero dashboard and open the frontend app.
 
 ---
 
@@ -181,6 +192,9 @@ Contributions are what make the open-source community such an amazing place to l
 5. Open a Pull Request.
 
 ---
+
+## Self Hosting 
+
 
 ## 📅 License
 
