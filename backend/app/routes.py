@@ -6,7 +6,8 @@ from app.constants import (
     DEADLIFT_PATH,
     SQUAT_PATH,
     OVERHEAD_PRESS_PATH,
-    BODYWEIGHT_PATH
+    BODYWEIGHT_PATH,
+    WEEKLY_VOLUME_PATH
 )
 
 from app.api import get_data
@@ -34,6 +35,7 @@ def fetch_data():
         "deadlift": read_csv(DEADLIFT_PATH) or [],
         "squat": read_csv(SQUAT_PATH) or [],
         "overhead_press": read_csv(OVERHEAD_PRESS_PATH) or [],
+        "weekly_volume": read_csv(WEEKLY_VOLUME_PATH) or [],
         "bodyweight": read_csv(BODYWEIGHT_PATH) or [],
     }
 

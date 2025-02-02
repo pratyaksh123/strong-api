@@ -9,6 +9,8 @@ import os
 load_dotenv()
 API_BASE_URL = os.getenv("API_BASE_URL", "192.168.0.214")
 
+st.set_page_config(page_title="Strong Dashboard", page_icon=":weight_lifter:", layout="centered", initial_sidebar_state="auto", menu_items=None)
+
 # ✅ Clean Title with Less Space
 st.markdown("<h1 style='text-align: center;'>🏋️‍♂️ Gym PR Tracker</h1>", unsafe_allow_html=True)
 st.markdown("<p style='text-align: center;'>Track your strength progress over time with clear visualizations!</p>", unsafe_allow_html=True)
@@ -165,6 +167,55 @@ def show_dashboard():
         # Display Chart
         st.subheader(chart_title)
         st.altair_chart(chart + points, use_container_width=True)
+        
+    def plot_weekly_volume(weekly_volume_key):
+        if weekly_volume_key not in data or not data[weekly_volume_key]:
+            st.warning("No weekly volume data available.")
+            return
+
+        df = pd.DataFrame(data[weekly_volume_key])
+
+        df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
+        # Apply time range filters
+        if time_range != "All Time":
+            df.set_index("timestamp", inplace=True)  # Temporarily set timestamp as index
+        
+            if time_range == "Last 6 Months":
+                df = df.last('6M')
+            elif time_range == "Last 1 Year":
+                df = df.last('1Y')
+        
+            df.reset_index(inplace=True)  # Reset index after filtering
+        
+        df = df.melt(id_vars=["timestamp"], var_name="Muscle Group", value_name="Sets")
+
+        if df.empty:
+            st.warning("No data available for plotting.")
+            return
+
+        st.subheader("📊 Weekly Volume by Muscle Group")
+
+        muscle_groups = df["Muscle Group"].unique().tolist()
+        selected_muscles = st.multiselect("Select Muscle Groups:", muscle_groups, default=muscle_groups)
+
+        if not selected_muscles:
+            st.warning("Please select at least one muscle group.")
+            return
+
+        df = df[df["Muscle Group"].isin(selected_muscles)]
+        chart = (
+            alt.Chart(df)
+            .mark_line(point=True)
+            .encode(
+                x="timestamp:T",
+                y="Sets:Q",
+                color="Muscle Group:N",
+                tooltip=["timestamp:T", "Muscle Group:N", "Sets:Q"]
+            )
+            .properties(width=700, height=400)
+        )
+
+        st.altair_chart(chart, use_container_width=True)
 
 
     # Render charts for all exercises
@@ -172,6 +223,7 @@ def show_dashboard():
     process_exercise_data("Deadlift", "deadlift")
     process_exercise_data("Squat", "squat")
     process_exercise_data("Overhead Press", "overhead_press")
+    plot_weekly_volume("weekly_volume")
     process_exercise_data("Bodyweight", "bodyweight", has_reps= False)
 
 show_dashboard()

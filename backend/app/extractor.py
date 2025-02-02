@@ -1,6 +1,8 @@
 from app.constants import JSON_FILE_PATH, DATA_DIR
 from app.api import get_data
+from collections import defaultdict
 
+import pandas as pd
 import json
 import csv
 import os
@@ -35,6 +37,7 @@ def extract_data(data):
     workout_logs = data['_embedded']['log']
     exercises = data['_embedded']['measurement']
     weight = data['_embedded']['measuredValue']
+    tags = data['_embedded']['tag']
     print("length of workout_logs: ", len(workout_logs))
     print("length of exercises: ", len(exercises))
     print("length of weight: ", len(weight))
@@ -111,7 +114,55 @@ def extract_bodyweight_logs(bodyweight):
         writer = csv.writer(file)
         writer.writerow(["timestamp", "weight"])  # CSV Headers
         writer.writerows(bodyweight_data)
-        
+
+def calculate_weekly_volume(exercise_dict, logs):
+    """
+    Calculates weekly volume for muscle groups
+    """
+    all_volumes = []
+    for workout in logs:
+        if workout['logType'] == "WORKOUT":
+            if "isHidden" in workout and workout["isHidden"]:
+                continue
+            timestamp = workout['startDate']
+            volume = defaultdict(int)
+            for sets in workout['_embedded']['cellSetGroup']:
+                if "measurement" not in sets['_links']:
+                    continue
+                exercise_id_local = sets['_links']['measurement']['href'].split("/")[-1]
+                tag = exercise_dict[exercise_id_local]["tag"]
+                
+                if not tag:
+                    continue
+                
+                for set in sets['cellSets']:
+                    if set.get("cellSetTag") == "WARM_UP" or set.get("isHidden", False):
+                        continue
+                    volume[tag] += 1
+
+            if volume:
+                all_volumes.append({'timestamp': timestamp, **volume})        
+    
+      # Convert to DataFrame
+    df = pd.DataFrame(all_volumes)
+
+    # Convert 'timestamp' to datetime
+    df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
+
+    # Drop rows with invalid timestamps
+    df = df.dropna(subset=['timestamp'])
+
+    # Sort by timestamp
+    df = df.sort_values(by='timestamp')
+
+    # Set 'timestamp' as index
+    df.set_index('timestamp', inplace=True)
+
+    # Resample data by week and sum the sets for each muscle group
+    weekly_volume_df = df.resample('W').sum().fillna(0)
+    
+    output_path = os.path.join(DATA_DIR, 'Weekly_volume.csv')
+    weekly_volume_df.to_csv(output_path)  
     
 
 def main():
@@ -122,4 +173,6 @@ def main():
     extract_workout_logs('b748103d-3014-4cae-a349-cec433528c3a', exercise_dict, workout_logs)
     extract_workout_logs('b2f5a2de-c684-4e94-a6e5-581e0695fcac', exercise_dict, workout_logs)
     extract_workout_logs('5974b925-ff0f-40de-9385-e6ccac763ddd', exercise_dict, workout_logs)
+    calculate_weekly_volume(exercise_dict, workout_logs)
     extract_bodyweight_logs(bodyweight)
+    
