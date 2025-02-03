@@ -1,5 +1,7 @@
 # 🏋️ Strong API & Dashboard
 
+<img width="982" alt="image" src="https://github.com/user-attachments/assets/f374c1b7-a365-4919-8fc3-1afe50779749" />
+
  This project is a dashboard for visualizing workout data from the Strong App and customizing the graphs and charts to track progress! I made it to help me track my progress and see how I'm doing over time and share with others who might find it useful. It's a dockerized **Flask API** and **Streamlit dashboard** for visualizing strength progression and weekly workout volumes. I also have a cron job that automatically fetches and updates the workout data from the Strong App on a daily basis. 
 
 ---
