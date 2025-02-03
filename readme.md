@@ -73,7 +73,7 @@ Install Docker Desktop from [here](https://www.docker.com/products/docker-deskto
 
 4. Deploy to Heroku:
    ```bash
-    heroku stack:set container
+    heroku stack:set container --app gym-api-backend
     heroku container:push web --app gym-api-backend
     heroku container:release web --app gym-api-backend
    ```
@@ -111,7 +111,7 @@ Install Docker Desktop from [here](https://www.docker.com/products/docker-deskto
 
 4. Deploy to Heroku:
    ```bash
-    heroku stack:set container
+    heroku stack:set container --app gym-api-frontend
     heroku container:push web --app gym-api-frontend
     heroku container:release web --app gym-api-frontend
    ```
@@ -146,7 +146,7 @@ Monitor the logs for any errors.
   ```
   GET /refresh_data
   ```
-  Re-fetches and updates the workout data from Strong App.
+  Re-fetches and updates the workout data from Strong App. It's automatically called by the cron job every midnight, you can call it manually if you want to update the data.
 
 ---
 
@@ -194,6 +194,67 @@ Contributions are what make the open-source community such an amazing place to l
 ---
 
 ## Self Hosting 
+I have the app running on my own Raspberry Pi server, you can check it out [here](https://strong.pratyaksh.me).
+
+For those who prefer self-hosting, follow these additional steps:
+
+- Use the provided **Dockerfile_SelfHosted** for setting up the application.
+- Check the `nginx` folder for sample configuration files.
+- Example Nginx Configuration:
+
+```nginx
+# Redirect HTTP to HTTPS
+server {
+    listen 80;
+    server_name strong.pratyaksh.me;
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/html;
+        allow all;
+    }
+
+    return 301 https://$host$request_uri;
+}
+
+# HTTPS Server for API and Frontend
+server {
+    listen 443 ssl;
+    server_name strong.pratyaksh.me;
+
+    ssl_certificate /etc/letsencrypt/live/strong.pratyaksh.me/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/strong.pratyaksh.me/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
+    location /api {
+        proxy_pass http://localhost:5000/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+}
+```
+
+### Firewall Configuration (UFW):
+
+```bash
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+sudo ufw allow from 192.168.0.0/24 to any port 22 ( basically ssh only from local network )
+sudo ufw allow 172.30.0.0/16  # Allow Docker Containers to communicate ( super importnant ) 
+sudo ufw enable
+```
+You might not need firewall at all if you are behind a router or a firewall.
+
+- **Port Forwarding:** Ensure ports 80 and 443 are forwarded in your router settings.
+- **SSL:** Use [Certbot](https://certbot.eff.org/) to configure SSL for HTTPS.
+
+**Need help with self-hosting?** Feel free to contact me!
 
 
 ## 📅 License
