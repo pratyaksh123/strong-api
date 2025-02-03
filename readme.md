@@ -259,6 +259,13 @@ You might not need firewall at all if you are behind a router or a firewall.
 **Need help with self-hosting?** Feel free to contact me!
 
 
+If you found this project helpful and want to support, you can do so here. No obligations!
+<br>
+
+<a href="https://www.buymeacoffee.com/pratyaksh" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
+
+
+
 ## 📅 License
 
 This project is licensed under the [MIT License](LICENSE).
