@@ -49,7 +49,10 @@ def extract_exercises(exercises):
         tag = None
         if "tag" in exercise["_links"]:
             tag = exercise["_links"]["tag"][0]["href"].split("/")[-1]
-        name = exercise["name"]["en"]
+        if "en" not in exercise["name"] and "custom" in exercise["name"]:
+            name = exercise["name"]["custom"]
+        else:
+            name = exercise["name"]["en"]
         id = exercise["id"]
         exercise_dict[id] = {"tag": tag, "name": name}
     # save to json file
