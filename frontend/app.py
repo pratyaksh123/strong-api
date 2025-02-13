@@ -165,17 +165,17 @@ def show_dashboard():
 
         # Ensure correct data types
         df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
-        df["weight"] = pd.to_numeric(df["weight"], errors="coerce")
+        df["weight"] = pd.to_numeric(df["weight"], errors="coerce").round(0)  # ✅ Round weight to whole numbers
 
         # Drop NaN values
         df = df.dropna()
 
         if has_reps:
             df["reps"] = pd.to_numeric(df["reps"], errors="coerce")
-            df["1RM"] = df["weight"] * (1 + df["reps"] / 30)  # Compute 1RM using Epley's formula
+            df["1RM"] = (df["weight"] * (1 + df["reps"] / 30)).round(0)  # ✅ Round 1RM to whole numbers
 
-            best_weight_sets = df.groupby("timestamp", as_index=False)["weight"].max()
-            best_pr_sets = df.groupby("timestamp", as_index=False)["1RM"].max()
+            best_weight_sets = df.groupby("timestamp", as_index=False).agg({"weight": "max", "reps": "max"})
+            best_pr_sets = df.groupby("timestamp", as_index=False).agg({"1RM": "max", "reps": "max"})
 
             selected_data = best_weight_sets if chart_type == "Max Weight" else best_pr_sets
             y_column = "weight" if chart_type == "Max Weight" else "1RM"
@@ -206,22 +206,55 @@ def show_dashboard():
         # Set Y-axis scale dynamically
         y_min, y_max = selected_data[y_column].min() * 0.9, selected_data[y_column].max() * 1.1
 
-        # Create Altair Chart (Line + Markers for Each Workout)
+        # ✅ Define Tooltip Handling for Both Cases
+        tooltip_list = [
+            alt.Tooltip("timestamp:T", title="📅 Date"),
+            alt.Tooltip(y_column, title="🏋️ Weight"),
+        ]
+        
+        if has_reps:
+            tooltip_list.append(alt.Tooltip("reps", title="🔄 Reps"))  # ✅ Add reps only if available
+
+        # ✅ Create Altair Chart (Smooth Line + Stylish Points)
         chart = (
             alt.Chart(selected_data)
-            .mark_line(color="lightblue", strokeWidth=2)
-            .encode(x="timestamp:T", y=alt.Y(y_column, title=chart_title, scale=alt.Scale(domain=[y_min, y_max])))
+            .mark_line(color="#5CC8FF", strokeWidth=3, interpolate="monotone")  # ✅ Smooth line
+            .encode(
+                x=alt.X("timestamp:T", axis=alt.Axis(labelColor="white", titleColor="white")),
+                y=alt.Y(y_column, title=chart_title, scale=alt.Scale(domain=[y_min, y_max])),
+            )
         )
 
+        # ✅ Add Points with Orange Color & Slight Glow Effect
         points = (
             alt.Chart(selected_data)
-            .mark_circle(size=70, color="red", opacity=0.8)
-            .encode(x="timestamp:T", y=y_column)
+            .mark_circle(size=90, color="#FFA500", opacity=0.85)  # ✅ Brighter and bigger points
+            .encode(
+                x="timestamp:T",
+                y=y_column,
+                tooltip=tooltip_list  # ✅ Dynamically apply correct tooltip
+            )
+        )
+
+        # ✅ Remove default Altair chart border for a clean look
+        final_chart = (chart + points).configure_view(strokeWidth=0)
+
+        # ✅ Apply Dark Mode Background via Streamlit CSS
+        st.markdown(
+            """
+            <style>
+            .stApp {
+                background-color: #121212;
+            }
+            </style>
+            """,
+            unsafe_allow_html=True,
         )
 
         # Display Chart
         st.subheader(chart_title)
-        st.altair_chart(chart + points, use_container_width=True)
+        st.altair_chart(final_chart, use_container_width=True)
+
         
     def plot_weekly_volume(weekly_volume_key):
         if weekly_volume_key not in data or not data[weekly_volume_key]:
@@ -231,6 +264,7 @@ def show_dashboard():
         df = pd.DataFrame(data[weekly_volume_key])
 
         df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
+
         # Apply time range filters
         if time_range != "All Time":
             df.set_index("timestamp", inplace=True)  # Temporarily set timestamp as index
@@ -258,19 +292,47 @@ def show_dashboard():
             return
 
         df = df[df["Muscle Group"].isin(selected_muscles)]
+
+        # ✅ Create Altair Chart with Smoothed Curves & Improved Readability
         chart = (
             alt.Chart(df)
-            .mark_line(point=True)
+            .mark_line(strokeWidth=2, opacity=0.85, interpolate="monotone")  # ✅ Smooth the curves
+            .encode(
+                x=alt.X("timestamp:T", axis=alt.Axis(labelColor="white", titleColor="white")),
+                y=alt.Y("Sets:Q", title="Sets", axis=alt.Axis(labelColor="white", titleColor="white")),
+                color=alt.Color("Muscle Group:N", legend=alt.Legend(title="Muscle Group")),
+                tooltip=[
+                    alt.Tooltip("timestamp:T", title="📅 Date"),
+                    alt.Tooltip("Muscle Group:N", title="💪 Muscle Group"),
+                    alt.Tooltip("Sets:Q", title="📊 Sets")
+                ]
+            )
+        )
+
+        # ✅ Add Data Points for Better Visualization
+        points = (
+            alt.Chart(df)
+            .mark_circle(size=50, opacity=0.9)
             .encode(
                 x="timestamp:T",
                 y="Sets:Q",
                 color="Muscle Group:N",
-                tooltip=["timestamp:T", "Muscle Group:N", "Sets:Q"]
+                tooltip=[
+                    alt.Tooltip("timestamp:T", title="📅 Date"),
+                    alt.Tooltip("Muscle Group:N", title="💪 Muscle Group"),
+                    alt.Tooltip("Sets:Q", title="📊 Sets")
+                ]
             )
-            .properties(width=700, height=400)
         )
 
-        st.altair_chart(chart, use_container_width=True)
+        # ✅ Final Chart with Clean Grid & Background
+        final_chart = (
+            (chart + points)
+            .configure_view(strokeWidth=0)  # ✅ Remove default Altair grid border
+        )
+
+        st.altair_chart(final_chart, use_container_width=True)
+
 
 
     # Render charts for all exercises
