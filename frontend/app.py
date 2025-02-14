@@ -74,16 +74,25 @@ def apply_custom_styles():
 
     # Light theme specific styles
     light_theme_styles = """
-        <style>
-            .stMultiSelect > div > div > div {
-                background-color: #f0f8ff;
-            }
+    <style>
+        .stApp {
+            background-color: white !important;
+            color: black !important;
+        }
 
-            .stMultiSelect div[data-baseweb="tag"] {
-                background-color: #5591f5 !important;
-                color: white !important;
-            }
-        </style>
+        .stMultiSelect > div > div > div {
+            background-color: #f0f8ff;
+        }
+
+        .stMultiSelect div[data-baseweb="tag"] {
+            background-color: #5591f5 !important;
+            color: white !important;
+        }
+
+        h1, h2, h3, h4, h5, h6, p, label, span {
+            color: black !important;
+        }
+    </style>
     """
 
     # Dark theme specific styles
@@ -172,10 +181,11 @@ def show_dashboard():
 
         if has_reps:
             df["reps"] = pd.to_numeric(df["reps"], errors="coerce")
-            df["1RM"] = (df["weight"] * (1 + df["reps"] / 30)).round(0)  # ✅ Round 1RM to whole numbers
+            df["1RM"] = (df["weight"] * (1 + df["reps"] / 30)).round(0)
 
-            best_weight_sets = df.groupby("timestamp", as_index=False).agg({"weight": "max", "reps": "max"})
-            best_pr_sets = df.groupby("timestamp", as_index=False).agg({"1RM": "max", "reps": "max"})
+            # ✅ Fix: Select the row with the highest weight and its corresponding reps
+            best_weight_sets = df.loc[df.groupby("timestamp")["weight"].idxmax()]
+            best_pr_sets = df.loc[df.groupby("timestamp")["1RM"].idxmax()]
 
             selected_data = best_weight_sets if chart_type == "Max Weight" else best_pr_sets
             y_column = "weight" if chart_type == "Max Weight" else "1RM"
