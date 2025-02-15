@@ -1,6 +1,7 @@
 from app.constants import JSON_FILE_PATH, DATA_DIR
 from app.api import get_data
 from collections import defaultdict
+from app.logger import logger
 
 import pandas as pd
 import json
@@ -10,37 +11,38 @@ import os
 def load_json_data_local():
     # Check if the file exists
     if not os.path.exists(JSON_FILE_PATH):
-        print("data.json does not exist. Fetching data...")
+        logger.info("data.json does not exist. Fetching data...")
         result = get_data()
         if result.get("status") != "success":
             raise Exception("Failed to fetch data. Cannot proceed.")
     
     # Check if the file is empty
     if os.path.getsize(JSON_FILE_PATH) == 0:
-        print("data.json is empty. Fetching data...")
+        logger.warning("data.json is empty. Fetching data...")
         result = get_data()
         if result.get("status") != "success":
             raise Exception("Failed to fetch data. Cannot proceed.")
 
     # Load JSON data
-    print("Loading data from:", JSON_FILE_PATH)
+    logger.info(f"Loading data from: {JSON_FILE_PATH}")
     try:
         with open(JSON_FILE_PATH, "r") as file:
             data = json.load(file)
     except json.JSONDecodeError:
+        logger.error("Failed to parse data.json. The file might be corrupted.")
         raise Exception("Failed to parse data.json. The file might be corrupted.")
 
     return data
 
 def extract_data(data):
-    print("Extracting data...")
+    logger.info("Extracting data...")
     workout_logs = data['_embedded']['log']
     exercises = data['_embedded']['measurement']
     weight = data['_embedded']['measuredValue']
     tags = data['_embedded']['tag']
-    print("length of workout_logs: ", len(workout_logs))
-    print("length of exercises: ", len(exercises))
-    print("length of weight: ", len(weight))
+    logger.info(f"length of workout_logs: {len(workout_logs)}")
+    logger.info(f"length of exercises: {len(exercises)}")
+    logger.info(f"length of weight: {len(weight)}")
     return workout_logs, exercises, weight
 
 def extract_exercises(exercises):
@@ -103,7 +105,7 @@ def extract_workout_logs(exercise_id, exercise_dict, logs):
     return exercise_data
 
 def extract_bodyweight_logs(bodyweight):
-    print("Extracting bodyweight logs...")
+    logger.info("Extracting bodyweight logs...")
     bodyweight_data = []
     for weight in bodyweight:
         if "isHidden" in weight and weight["isHidden"]:

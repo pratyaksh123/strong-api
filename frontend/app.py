@@ -5,6 +5,7 @@ import altair as alt
 from dotenv import load_dotenv
 
 import os
+import platform
 
 load_dotenv()
 API_BASE_URL = os.getenv("API_BASE_URL", "192.168.0.214")
@@ -18,8 +19,9 @@ st.markdown("<p style='text-align: center;'>Track your strength progress over ti
 # ✅ Initialize Theme Settings
 ms = st.session_state
 if "themes" not in ms: 
+    system_theme = "dark" if platform.system() in ["Linux", "Darwin"] else "light"
     ms.themes = {
-        "current_theme": "light",
+        "current_theme": system_theme,
         "refreshed": True,
         
         "light": {

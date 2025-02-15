@@ -3,6 +3,7 @@ import requests
 from flask import Flask, jsonify
 from dotenv import load_dotenv
 from app.constants import STRONG_API_BASE_URL, JSON_FILE_PATH
+from app.logger import logger
 
 load_dotenv()
 import json
@@ -14,7 +15,7 @@ def get_auth():
         password = os.getenv("password")
         # Send login request to Strong App API
         if not email or not password:
-            print("❌ Missing username or password in environment variables.")
+            logger.error("❌ Missing username or password in environment variables.")
             return None
         
         print("🔑 Requesting new access token...")
@@ -35,22 +36,22 @@ def get_auth():
         if response.status_code == 200:
             auth_data = response.json()
             if auth_data:
-                print("✅ Access token retrieved successfully.")
+                logger.info("✅ Access token retrieved successfully.")
                 return  {
-                "access_token": auth_data["accessToken"],
-                "user_id": auth_data['userId']
+                    "access_token": auth_data["accessToken"],
+                    "user_id": auth_data['userId']
                 }
             else:
-                print("❌ Access token missing in response.")
+                logger.error("❌ Access token missing in response.")
                 return None
         else:
             return jsonify({"error": "Invalid credentials"}), 401
 
     except ValueError as e:
-        print(str(e))
+        logger.error(str(e))
         return None
     except requests.RequestException as e:
-        print(f"❌ Request failed: {e}")
+        logger.error(f"❌ Request failed: {e}")
         return None
     
 def get_data():
@@ -59,7 +60,7 @@ def get_data():
     access_token = auth_data['access_token']
     user_id= auth_data['user_id']
     if not auth_data:
-        print("❌ No access token. Aborting data fetch.")
+        logger.error("❌ No access token. Aborting data fetch.")
         return
     
     url = f"https://back.strong.app/api/users/{user_id}/?continuation=&limit=300&include=template&include=log&include=measurement&include=widget&include=tag&include=folder&include=metric&include=measuredValue"
@@ -79,22 +80,21 @@ def get_data():
     try:
         response = requests.get(url, headers=headers, data=payload)
         if response.status_code == 200:
-            print("✅ Data fetched successfully.")
+            logger.info("✅ Data fetched successfully.")
             try:
                 with open(JSON_FILE_PATH, "w") as file:
                     json.dump(response.json(), file, indent=4)
-                print(f"✅ Data saved at {JSON_FILE_PATH}")
-                return {"status": "success", "message": "Data fetched and saved successfully."}
-                return                 
+                logger.info(f"✅ Data saved at {JSON_FILE_PATH}")
+                return {"status": "success", "message": "Data fetched and saved successfully."}         
             except Exception as e:
-                print(f"❌ Failed to save data.json: {e}")
+                logger.error(f"❌ Failed to save data.json: {e}")
                 return {"status": "error", "message": f"Failed to save data: {e}"}
         else:
-            print(f"❌ Failed to fetch data. Status: {response.status_code} - {response.text}")
+            logger.error(f"❌ Failed to fetch data. Status: {response.status_code} - {response.text}")
             return {"status": "error", "message": f"Failed to fetch data. Status: {response.status_code}"}
 
     except requests.RequestException as e:
-        print(f"❌ Request failed: {e}")
+        logger.error(f"❌ Request failed: {e}")
         return {"status": "error", "message": f"Request failed: {e}"}
 
 if __name__ == "__main__":
