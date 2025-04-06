@@ -16,119 +16,38 @@ st.set_page_config(page_title="Strong Dashboard", page_icon=":weight_lifter:", l
 st.markdown("<h1 style='text-align: center;'>🏋️‍♂️ Gym PR Tracker</h1>", unsafe_allow_html=True)
 st.markdown("<p style='text-align: center;'>Track your strength progress over time with clear visualizations!</p>", unsafe_allow_html=True)
 
-# ✅ Initialize Theme Settings
-ms = st.session_state
-if "themes" not in ms: 
-    system_theme = "dark" if platform.system() in ["Linux", "Darwin"] else "light"
-    ms.themes = {
-        "current_theme": system_theme,
-        "refreshed": True,
-        
-        "light": {
-            "theme.base": "light",
-            "theme.backgroundColor": "white",
-            "theme.primaryColor": "#5591f5",
-            "theme.secondaryBackgroundColor": "#82E1D7",
-            "theme.textColor": "#0a1464",
-            "button_face": "🌙"
-        },
-
-        "dark": {
-            "theme.base": "dark",
-            "theme.backgroundColor": "#121212",
-            "theme.primaryColor": "#c98bdb",
-            "theme.secondaryBackgroundColor": "#5591f5",
-            "theme.textColor": "white",
-            "button_face": "☀️"
-        },
-    }
-
-def ChangeTheme():
-    """Switches the theme dynamically and forces rerun."""
-    previous_theme = ms.themes["current_theme"]
-    theme_dict = ms.themes["dark"] if previous_theme == "light" else ms.themes["light"]
-
-    for key, val in theme_dict.items():
-        if key.startswith("theme"):
-            st._config.set_option(key, val)  
-
-    ms.themes["refreshed"] = False
-    ms.themes["current_theme"] = "dark" if previous_theme == "light" else "light"
-
 def apply_custom_styles():
-    # Common styles for both themes
-    base_styles = """
+    st.markdown("""
         <style>
+            .stApp {
+                background-color: white !important;
+                color: black !important;
+            }
+
             .stMultiSelect > div > div > div {
                 border: 2px solid #5591f5;
                 border-radius: 10px;
+                background-color: #f0f8ff;
             }
 
             .stMultiSelect div[data-baseweb="tag"] {
+                background-color: #5591f5 !important;
+                color: white !important;
                 border-radius: 5px;
             }
 
             .stMultiSelect svg {
                 fill: #5591f5;
             }
-        </style>
-    """
 
-    # Light theme specific styles
-    light_theme_styles = """
-    <style>
-        .stApp {
-            background-color: white !important;
-            color: black !important;
-        }
-
-        .stMultiSelect > div > div > div {
-            background-color: #f0f8ff;
-        }
-
-        .stMultiSelect div[data-baseweb="tag"] {
-            background-color: #5591f5 !important;
-            color: white !important;
-        }
-
-        h1, h2, h3, h4, h5, h6, p, label, span {
-            color: black !important;
-        }
-    </style>
-    """
-
-    # Dark theme specific styles
-    dark_theme_styles = """
-        <style>
-            .stMultiSelect > div > div > div {
-                background-color: #2c2c2c;
-            }
-
-            .stMultiSelect div[data-baseweb="tag"] {
-                background-color: #c98bdb !important;
+            h1, h2, h3, h4, h5, h6, p, label, span {
                 color: black !important;
             }
         </style>
-    """
-
-    # Apply styles based on the current theme
-    if ms.themes["current_theme"] == "light":
-        st.markdown(base_styles + light_theme_styles, unsafe_allow_html=True)
-    else:
-        st.markdown(base_styles + dark_theme_styles, unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
 # Apply styles when the dashboard is rendered
 apply_custom_styles()
-
-# ✅ Add Dark Mode Toggle at the Top
-top_bar = st.columns([8, 1])
-with top_bar[1]:
-    btn_label = ms.themes["dark"]["button_face"] if ms.themes["current_theme"] == "light" else ms.themes["light"]["button_face"]
-    st.button(btn_label, on_click=ChangeTheme)
-
-if ms.themes["refreshed"] == False:
-    ms.themes["refreshed"] = True
-    st.rerun()
 
 # @st.cache_data(ttl=600)  # Cache API response for 10 minutes
 def fetch_data():
@@ -148,7 +67,7 @@ def show_dashboard():
         return  # Stop execution if data fetch fails
 
     # Selection options
-    col1, col2, col3 = st.columns([2, 1, 1])
+    col1, col2 = st.columns([6, 1])
 
     with col1:
         st.subheader("📊 Select Time Frame:")
@@ -157,10 +76,6 @@ def show_dashboard():
     with col2:
         st.subheader("⚖️ Unit:")
         use_kg = st.toggle("Use KG", value=False)  # ✅ Default to Pounds (lbs)
-
-    with col3:
-        st.subheader("📈 Best Set View:")
-        chart_type = st.radio("", ["Max Weight", "1RM Projection"], horizontal=True)
 
     # Convert weight if needed
     unit_label = "KGs" if use_kg else "LBs"
@@ -183,14 +98,15 @@ def show_dashboard():
 
         if has_reps:
             df["reps"] = pd.to_numeric(df["reps"], errors="coerce")
+            df = df[df["reps"] > 0]
             df["1RM"] = (df["weight"] * (1 + df["reps"] / 30)).round(0)
 
-            # ✅ Fix: Select the row with the highest weight and its corresponding reps
-            best_weight_sets = df.loc[df.groupby("timestamp")["weight"].idxmax()]
-            best_pr_sets = df.loc[df.groupby("timestamp")["1RM"].idxmax()]
+            # Always use the best set by 1RM
+            best_1rm_sets = df.loc[df.groupby("timestamp")["1RM"].idxmax()]
+            selected_data = best_1rm_sets.copy()
 
-            selected_data = best_weight_sets if chart_type == "Max Weight" else best_pr_sets
-            y_column = "weight" if chart_type == "Max Weight" else "1RM"
+            # Plot actual weight or 1RM estimate based on chart type
+            y_column = "1RM"
         else:
             selected_data = df.groupby("timestamp", as_index=False)["weight"].max()
             y_column = "weight"
@@ -217,15 +133,18 @@ def show_dashboard():
 
         # Set Y-axis scale dynamically
         y_min, y_max = selected_data[y_column].min() * 0.9, selected_data[y_column].max() * 1.1
-
-        # ✅ Define Tooltip Handling for Both Cases
-        tooltip_list = [
-            alt.Tooltip("timestamp:T", title="📅 Date"),
-            alt.Tooltip(y_column, title="🏋️ Weight"),
-        ]
         
+        tooltip_list = [alt.Tooltip("timestamp:T", title="📅 Date")]
+        if exercise_name != "Bodyweight":
+            selected_data["weight"] = (selected_data["weight"] * conversion_factor).round(1)
+        else:
+            # Only convert if the original data is in pounds
+            if not use_kg:
+                selected_data["weight"] = (selected_data["weight"] / 2.20462)
+        tooltip_list.append(alt.Tooltip("weight:Q", title=f"🏋️ Weight ({unit_label})", format=".1f"))
         if has_reps:
-            tooltip_list.append(alt.Tooltip("reps", title="🔄 Reps"))  # ✅ Add reps only if available
+            tooltip_list.append(alt.Tooltip("reps", title="🔄 Reps"))
+            tooltip_list.append(alt.Tooltip("1RM", title="📈 1RM Estimate", format=".1f"))
 
         # ✅ Create Altair Chart (Smooth Line + Stylish Points)
         chart = (
@@ -250,18 +169,6 @@ def show_dashboard():
 
         # ✅ Remove default Altair chart border for a clean look
         final_chart = (chart + points).configure_view(strokeWidth=0)
-
-        # ✅ Apply Dark Mode Background via Streamlit CSS
-        st.markdown(
-            """
-            <style>
-            .stApp {
-                background-color: #121212;
-            }
-            </style>
-            """,
-            unsafe_allow_html=True,
-        )
 
         # Display Chart
         st.subheader(chart_title)
